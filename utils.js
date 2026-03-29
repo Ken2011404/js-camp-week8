@@ -64,7 +64,7 @@ function validateCartQuantity(quantity) {
  * @returns {string} - 格式化後的金額
  */
 function formatCurrency(amount) {
-  return `NT$ ${amount.toLocaleString('zh-TW')}`;
+  // 請實作此函式
 }
 
 module.exports = {
