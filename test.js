@@ -507,6 +507,76 @@ describe("測試二：工具函式", () => {
 // ========================================
 // 測試三：產品服務
 // ========================================
+describe("測試三：產品服務", () => {
+  // 從測試三開始，用 mockResolvedValue 覆蓋測試一設定的真實實作
+  // 每個 describe 的 beforeEach 會在「檔案層級 beforeEach（clearAllMocks）」之後執行
+  beforeEach(() => {
+    api.fetchProducts.mockResolvedValue(mockApiProducts);
+  });
+
+  describe("getProducts", () => {
+    test("應回傳物件", async () => {
+      const result = await productService.getProducts();
+      expect(typeof result).toBe("object");
+      expect(result).not.toBeNull();
+    });
+
+    test("count 應為數字且等於 products 長度", async () => {
+      const result = await productService.getProducts();
+      expect(typeof result.count).toBe("number");
+      expect(result.count).toBe(result.products.length);
+    });
+
+    test("應只呼叫一次 fetchProducts", async () => {
+      await productService.getProducts();
+      expect(api.fetchProducts).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("getProductsByCategory", () => {
+    // 【注意】mock 版直接使用假資料裡的分類名稱，不需要先呼叫 getCategories() 取得真實分類
+    test("應回傳符合分類的陣列", async () => {
+      const result = await productService.getProductsByCategory("衣服");
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.every((p) => p.category === "衣服")).toBe(true);
+    });
+
+    test("不存在的分類應回傳空陣列", async () => {
+      const result = await productService.getProductsByCategory("不存在的分類");
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(0);
+    });
+  });
+
+  describe("getProductById", () => {
+    // 【注意】mock 版直接使用假資料裡已知的 id，不需要先呼叫 getProducts()
+    test("找到的產品應有 id 屬性且 id 正確", async () => {
+      const result = await productService.getProductById("product-1");
+      expect(result).toHaveProperty("id");
+      expect(result.id).toBe("product-1");
+    });
+
+    test("找不到產品應回傳 null", async () => {
+      expect(await productService.getProductById("不存在的ID")).toBeNull();
+    });
+  });
+
+  describe("getCategories", () => {
+    test("應回傳非空字串陣列", async () => {
+      const result = await productService.getCategories();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBeGreaterThan(0);
+      expect(result.every((cat) => typeof cat === "string")).toBe(true);
+    });
+
+    // 【Mock 版新增】假資料中「衣服」出現兩次，可明確驗證去重邏輯
+    test("應去除重複分類（衣服出現兩次，結果應只有一次）", async () => {
+      const result = await productService.getCategories();
+      const uniqueResult = [...new Set(result)];
+      expect(result.length).toBe(uniqueResult.length);
+    });
+  });
+});
 
 // ========================================
 // 測試四：購物車服務
